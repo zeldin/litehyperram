@@ -31,11 +31,11 @@ class ECP5HYPERRAMPHY(Module):
         else:
             self.reset_n = Signal()
 
-        rx_q0 = Cat(*self.dq_qa, self.rwds_qa)
-        rx_q1 = Cat(*self.dq_qb, self.rwds_qb)
-        tx_d0 = Cat(*self.dq_da, self.rwds_da)
-        tx_d1 = Cat(*self.dq_db, self.rwds_db)
-        oe = Cat(*Replicate(self.dq_oe, 8), self.rwds_oe)
+        rx_q0 = [self.dq_qa[i] for i in range(8)] + [self.rwds_qa]
+        rx_q1 = [self.dq_qb[i] for i in range(8)] + [self.rwds_qb]
+        tx_d0 = [self.dq_da[i] for i in range(8)] + [self.rwds_da]
+        tx_d1 = [self.dq_db[i] for i in range(8)] + [self.rwds_db]
+        oe = [self.dq_oe] * 8 + [self.rwds_oe]
 
         # Clock output is delayed 90 degrees to convert TX aligned and RX
         # centered into TX centered and RX aligned from the perspective of
