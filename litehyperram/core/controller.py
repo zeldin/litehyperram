@@ -41,8 +41,11 @@ class LiteHyperRAMController(Module):
         self.comb += phy.reset_n.eq(ram_reset_b)
 
         dlycnt = Signal(max=max(reset_delay, phy.tx_latency + phy.rx_latency,
-                                2 * initial_latency), reset=reset_delay)
-        self.sync += If(dlycnt != 0,
+                                2 * initial_latency),
+                        reset=reset_delay, reset_less=True)
+        self.sync += If(ResetSignal(),
+                        dlycnt.eq(reset_delay)
+                     ).Elif(dlycnt != 0,
                         dlycnt.eq(dlycnt-1)
                      ).Elif(~ram_reset_b,
                         dlycnt.eq(reset_delay),
