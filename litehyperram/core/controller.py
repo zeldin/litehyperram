@@ -1,3 +1,6 @@
+# This file is Copyright (c) 2021 Marcus Comstedt <marcus@mc.pp.se>
+# License: BSD
+
 from migen import *
 
 from migen.fhdl.decorators import CEInserter, ResetInserter
