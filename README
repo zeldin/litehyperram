@@ -1,0 +1,30 @@
+   __   _ __      __ __                  ___  ___   __  ___
+  / /  (_) /____ / // /_ _____  ___ ____/ _ \/ _ | /  |/  /
+ / /__/ / __/ -_) _  / // / _ \/ -_) __/ , _/ __ |/ /|_/ / 
+/____/_/\__/\__/_//_/\_, / .__/\__/_/ /_/|_/_/ |_/_/  /_/  
+                    /___/_/                                
+
+              Copyright 2021 / Marcus Comstedt
+
+       A small footprint and configurable HyperRAM core
+                  powered by Migen & LiteX
+
+[> Intro
+--------
+LiteHyperRAM provides a small footprint and configurable HyperRAM core.
+
+[> Features
+-----------
+PHY:
+  - ECP5 DDR PHY
+Core:
+  - Both memory and register space access supported
+  - Arbitrary burst length
+Frontend:
+  - Native or Wishbone user interface.
+
+[> License
+----------
+LiteHyperRAM is released under the very permissive two-clause BSD license.
+Under the terms of this license, you are authorized to use LiteHyperRAM for
+closed-source proprietary designs.
