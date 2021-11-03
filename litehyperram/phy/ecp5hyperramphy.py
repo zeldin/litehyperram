@@ -3,6 +3,39 @@
 
 # Lattice ECP5 HyperRAM PHY -----------------------------------------------------------------------------
 
+# The following DDR PHY has built-in latencies.  The time from dq_d being
+# sampled to it appearing on dq is 2 clocks for A data and 2.5 clocks for
+# B data.  The same applies to rwds.  The following wavedrom diagram shows
+# the exact timing:
+#
+# {signal: [
+#  {name: 'clk', wave: 'P......', period: 2},
+#  {name: 'dq_da', wave: 'x35x...', period: 2, data: ["D0A", "D1A"], node:'..A'},
+#  {name: 'dq_db', wave: 'x47x...', period: 2, data: ["D0B", "D1B"]},
+#  {name: 'clk_enable', wave: '01.0...', period: 2},
+#  {},
+#  {name: 'dq', wave: 'x.......3457x.', data: ["D0A", "D0B", "D1A", "D1B"], node:'........BC'},
+#  {name: 'ck', wave: '0........HLHL.', phase: 0.5},
+#  {node: '....D...E'},
+#  {node: '....F....G'}],
+#  edge: ['A-F', 'B-E', 'C-G', 'D<-|->E 2 Tclk', 'F<-|->G 2.5 Tclk']}
+#
+# For input, the corresponding latencies is 1.5 clocks for A data and
+# 1 clock for B data, as shown in the following diagram:
+# 
+# {signal: [
+#  {name: 'clk', wave: 'P....', period: 2},
+#  {name: 'clk_enable', wave: '10...', period: 2},
+#  {},
+#  {name: 'ck', wave: 'lHLHLHLHL.', phase: 0.5},
+#  {name: 'dq', wave: 'x3457x....', phase: 0.5, data: ["D0A", "D0B", "D1A", "D1B"]},
+#  {node: '.AB.C'},
+#  {name: 'dq_qa', wave: 'x.35x', period: 2, data: ["D0A", "D1A"]},
+#  {name: 'dq_qb', wave: 'x.47x', period: 2, data: ["D0B", "D1B"]},
+#  {node: '..D.E'},
+#  {node: '.F..G'}],
+#  edge: ['A-F', 'B-D', 'C-G', 'D<-|->E 1 Tclk', 'F<-|->G 1.5 Tclk']}
+
 from migen import *
 from migen.fhdl.specials import Tristate
 

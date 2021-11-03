@@ -23,6 +23,49 @@ Core:
 Frontend:
   - Native or Wishbone user interface.
 
+[> Native interface
+-------------------
+The native port (LiteHyperRAMNativePort) consists of three endpoints,
+cmd, wdata and rdata.  A write access uses cmd and wdata, and a read
+access uses cmd and rdata.  Multiple 16-bit words can be transferred
+over the wdata/rdata endpoint for a single write or read command (burst
+mode).
+
+cmd:
+  - we: Set to 1 for write, 0 for read
+  - aspace: Set to 1 for register access, 0 for memory access
+  - burst_type: Set to 1 for linear burst, 0 for wrapped/hybrid burst
+    (writes to register space must specify linear burst)
+  - addr: word address
+  - valid: Set to 1 to start a new transaction
+  - ready: The command is accepted when both valid and ready are 1
+
+wdata:
+  - data: 16-bit word to write
+  - we: 2-bit signal deciding which byte(s) of data to write to memory
+    (ignored on register writes)
+  - last: Set to 1 on the last word of the burst to terminate the write
+    operation
+  - ready: Provide the next word when this is set to 1
+  - valid: Not supported!  The client must provide valid data at the
+    latest 2 cycles after the command has been accepted, and provide the
+    next word of data in the cycle after any cycle where ready is 1 and
+    last is 0
+
+rdata:
+  - data: 16-bit input word
+  - last: Set to 1 on the last word of the burst to terminate the read
+    operation.  Note that this signal must be driven by the client, since
+    the controller does not know how long burst is required.  Due to latencies
+    a number of additional reads will be performed after the one with last set
+    to 1, but valid will not be indicated for these reads.
+  - valid: When this is set to 1 the next input word is available in data
+  - ready: Not supported!   The client must accept any word with the valid
+    bit set immediately; it will not be retained to subsequent cycles.
+
+Writes to register CR0 must preserve bits 3-7, or the controller will
+stop working.
+
 [> License
 ----------
 LiteHyperRAM is released under the very permissive two-clause BSD license.
