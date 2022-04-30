@@ -10,7 +10,7 @@ from litehyperram.common import LiteHyperRAMNativePort
 
 class LiteHyperRAMController(Module):
 
-    il_code = { 3: 0b1110, 4: 0b1111, 5: 0b0000, 6: 0b0001 }
+    il_code = { 3: 0b1110, 4: 0b1111, 5: 0b0000, 6: 0b0001, 7: 0b0010 }
 
     def __init__(self, phy, module, clk_freq, initial_latency=None, fixed_latency=None):
 
@@ -21,7 +21,7 @@ class LiteHyperRAMController(Module):
         min_initial_latency = module.min_initial_latency(clk_freq)
         if initial_latency is None:
             initial_latency = min_initial_latency
-        if initial_latency < 3 or initial_latency  > 6:
+        if initial_latency < 3 or initial_latency > module.max_initial_latency:
             raise ValueError("Invalid initial latency")
         if initial_latency < min_initial_latency:
             raise ValueError("Too low initial latency for this frequency")
