@@ -1,1 +1,1 @@
-from litehyperram.phy.ecp5hyperramphy import ECP5HYPERRAMPHY
+from litehyperram.phy.ecp5hyperramphy import ECP5HYPERRAMPHY, ECP5HYPERRAMPHY2x
