@@ -61,6 +61,8 @@ class ECP5HYPERRAMPHY(Module):
         self.cs_n = pads.cs_n
         if hasattr(pads, "reset_n"):
             self.reset_n = pads.reset_n
+        elif hasattr(pads, "rst_n"):
+            self.reset_n = pads.rst_n
         else:
             self.reset_n = Signal()
 
@@ -103,7 +105,7 @@ class ECP5HYPERRAMPHY(Module):
             i_RST  = ResetSignal(),
             i_D0   = clk_enable_dly,
             i_D1   = 0,
-            o_Q    = pads.ck_p)
+            o_Q    = pads.ck_p if hasattr(pads, "ck_p") else pads.clk)
 
         for i in range(9):
             d = Signal()
