@@ -70,10 +70,10 @@ class LiteHyperRAMWishbone2Native(Module):
             )
         )
         fsm.act("WAIT-READ",
-            port.rdata.last.eq(count == (ratio - 1)),
-            If(port.rdata.valid, NextValue(count, count + 1)),
-            If(rdata_converter.source.valid,
-               wishbone.ack.eq(1),
-               NextState("CMD")
-            )
+	    If(((wishbone.cti != 0b010) & (count == (ratio - 1))) | ~wishbone.cyc,
+	       port.rdata.last.eq(1),
+	       If(port.rdata.valid, NextState("CMD"))),
+            If(port.rdata.valid,
+	       NextValue(count, Mux(count == (ratio - 1), 0, count + 1))),
+	    wishbone.ack.eq(rdata_converter.source.valid),
         )
