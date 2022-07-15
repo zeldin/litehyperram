@@ -29,3 +29,7 @@ class LiteHyperRAMNativePort:
         self.rdata = stream.Endpoint(rdata_description(data_width))
         self.address_width = address_width
         self.data_width = data_width
+
+    @staticmethod
+    def like(other):
+        return LiteHyperRAMNativePort(other.address_width, other.data_width)

@@ -11,8 +11,6 @@ from litehyperram.common import LiteHyperRAMNativePort
 
 class LiteHyperRAMController(Module):
 
-    il_code = { 3: 0b1110, 4: 0b1111, 5: 0b0000, 6: 0b0001, 7: 0b0010 }
-
     def __init__(self, phy, module, clk_freq, initial_latency=None, fixed_latency=None):
 
         dw = 32 if hasattr(phy, "dq_dd") else 16
@@ -38,8 +36,8 @@ class LiteHyperRAMController(Module):
         if dw == 32 and not fixed_latency:
             raise ValueError("Must use fixed latency for 32-bit mode")
 
-        cr0_value = (0x8f07 | (self.il_code[initial_latency] << 4) |
-                     (0x0008 if fixed_latency else 0))
+        self.initial_latency = initial_latency
+        self.fixed_latency = fixed_latency
 
         ram_reset_b = Signal(reset=0)
         self.comb += phy.reset_n.eq(ram_reset_b)
@@ -89,19 +87,14 @@ class LiteHyperRAMController(Module):
             rwds_in = [ phy.rwds_qb, phy.rwds_qa ]
             dq_in = Cat(phy.dq_qb, phy.dq_qa)
 
-        self.port = port = LiteHyperRAMNativePort(log2_int(module.nbanks * module.nrows * module.ncols * 16 // dw), data_width=dw)
+        self.port = port = LiteHyperRAMNativePort(log2_int(module.nbanks * module.nrows * module.ncols), data_width=dw)
         self.comb += [ port.rdata.data.eq(dq_in) ]
 
         self.submodules.fsm = fsm = ResetInserter()(CEInserter()(FSM(reset_state="CA_WORD0")))
         fsm.ce = dlycnt == 0
         fsm.reset = ~ram_reset_b
 
-        addr = Signal(32)
-        self.comb += addr.eq(Cat(C(0, 1), port.cmd.addr)
-                             if port.data_width == 32 else port.cmd.addr)
-
-        ca = Signal(48, reset=0x600001000000)
-        initial_cr0_write = Signal(reset=1)
+        ca = Signal(48)
 
         fsm.act("CA_WORD0",
                 NextValue(cs_b, 0),
@@ -128,12 +121,9 @@ class LiteHyperRAMController(Module):
                 ).Elif(ca[46] == 1,
                    # Zero latency write to register
                    NextState("END_WRITE"),
-                   If(initial_cr0_write == 1,
-                      NextValue(dq_out[:16], cr0_value)
-                   ).Else(
-                      NextValue(dq_out[:16], port.wdata.data),
-                      port.wdata.ready.eq(1),
-                      If(port.wdata.last == 0, NextState("WRITE_REG")))
+                   NextValue(dq_out[:16], port.wdata.data),
+                   port.wdata.ready.eq(1),
+                   If(port.wdata.last == 0, NextState("WRITE_REG"))
                 ).Else(
                    # Normal write, wait for RWDS direction change
                    NextState("WRITE_DELAY")
@@ -141,8 +131,8 @@ class LiteHyperRAMController(Module):
 
         fsm.act("WRITE_DELAY",
                 NextValue(rwds_oe, 1),
-		NextValue(dq_out, 0),
-		NextValue(dlycnt, initial_latency-1-1) if dw == 32 else
+                NextValue(dq_out, 0),
+                NextValue(dlycnt, initial_latency-1-1) if dw == 32 else
                 If(1 if fixed_latency else rwds_in[1],
                    NextValue(dlycnt, 2*initial_latency-1-2)
                 ).Else(
@@ -170,7 +160,7 @@ class LiteHyperRAMController(Module):
 
         fsm.act("READ_DELAY",
                 NextValue(dq_oe, 0),
-		NextValue(dlycnt, phy.tx_latency + phy.rx_latency + 1) if dw == 32 else
+                NextValue(dlycnt, phy.tx_latency + phy.rx_latency + 1) if dw == 32 else
                 If(1 if fixed_latency else rwds_in[0],
                    NextValue(dlycnt, 2 * initial_latency + phy.tx_latency + phy.rx_latency)
                 ).Else(
@@ -191,17 +181,11 @@ class LiteHyperRAMController(Module):
                 NextState("IDLE"))
 
         fsm.act("IDLE",
-                If(((initial_cr0_write == 1) & (ca[35] == 0)) if dual_die else 0,
-                   # Repeat config for second die
-                   NextValue(ca[35], 1),
-                   NextState("CA_WORD0")
-                ).Else(
-                   NextValue(initial_cr0_write, 0),
-                   port.cmd.ready.eq(1),
-                   If(port.cmd.valid,
-                      NextValue(ca[47], ~port.cmd.we),
-                      NextValue(ca[46], port.cmd.aspace),
-                      NextValue(ca[45], port.cmd.burst_type),
-                      NextValue(ca[16:45], addr[3:32]),
-                      NextValue(ca[0:3], addr[0:3]),
-                      NextState("CA_WORD0"))))
+                port.cmd.ready.eq(1),
+                If(port.cmd.valid,
+                   NextValue(ca[47], ~port.cmd.we),
+                   NextValue(ca[46], port.cmd.aspace),
+                   NextValue(ca[45], port.cmd.burst_type),
+                   NextValue(ca[16:45], port.cmd.addr[3:32]),
+                   NextValue(ca[0:3], port.cmd.addr[0:3]),
+                   NextState("CA_WORD0")))
