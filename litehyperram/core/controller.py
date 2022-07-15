@@ -89,7 +89,7 @@ class LiteHyperRAMController(Module):
             rwds_in = [ phy.rwds_qb, phy.rwds_qa ]
             dq_in = Cat(phy.dq_qb, phy.dq_qa)
 
-        self.port = port = LiteHyperRAMNativePort(log2_int(module.nbanks * module.nrows * module.ncols), data_width=dw)
+        self.port = port = LiteHyperRAMNativePort(log2_int(module.nbanks * module.nrows * module.ncols * 16 // dw), data_width=dw)
         self.comb += [ port.rdata.data.eq(dq_in) ]
 
         self.submodules.fsm = fsm = ResetInserter()(CEInserter()(FSM(reset_state="CA_WORD0")))
