@@ -53,7 +53,7 @@ class LiteHyperRAMRegisterSpace(Module, AutoCSR):
             ).Else(
                access.fields.strobe.eq(0),
                If(port.rdata.valid,
-                  access.fields.reg_value.eq(port.rdata.data)),
+                  access.fields.reg_value.eq(port.rdata.data[-16:])),
                If(decrement_die_nr,
                   access.fields.die_nr.eq(access.fields.die_nr - 1))
             )
