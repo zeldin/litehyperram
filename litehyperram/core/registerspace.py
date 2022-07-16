@@ -20,14 +20,29 @@ class LiteHyperRAMRegisterSpace(Module, AutoCSR):
         decrement_die_nr = Signal()
 
         self.access = access = CSR(32)
+        access.description= "Register space access control. " + \
+            "Can only be written when no operation is in progress."
         access.fields = CSRFieldAggregate([
-            CSRField("reg_value", 16, reset = cr0_value),
-            CSRField("reg_nr", 3),
-            CSRField("reg_type", 8, reset = 1),
-            CSRField("die_nr", 2, reset = nbanks-1),
-            CSRField("we", offset = 29, reset = 1),
-            CSRField("strobe", offset = 30, pulse = True),
-            CSRField("busy", offset = 31, access = CSRAccess.ReadOnly)
+            CSRField("reg_value", 16, reset = cr0_value,
+                description="Value to write to register, or result of read."),
+            CSRField("reg_nr", 3, values=[
+                ("``0b0``", "Register number 0."),
+                ("``0b1``", "Register number 1."),
+            ]),
+            CSRField("reg_type", 8, reset = 1, values=[
+                ("``0b0``", "Identification Register."),
+                ("``0b1``", "Configuration Register.")
+            ]),
+            CSRField("die_nr", 2, reset = nbanks-1,
+                description="Number of the die to access."),
+            CSRField("we", offset = 29, reset = 1, values=[
+                ("``0b0``", "Read operation."),
+                ("``0b1``", "Write operation.")
+            ]),
+            CSRField("strobe", offset = 30, pulse = True,
+                description="Write ``1`` to perform read/write."),
+            CSRField("busy", offset = 31, access = CSRAccess.ReadOnly,
+                description="Operation in progress (when reas as ``1``).")
         ], CSRAccess.ReadWrite)
 
         self.comb += [

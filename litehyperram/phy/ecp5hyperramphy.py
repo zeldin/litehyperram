@@ -185,6 +185,8 @@ class ECP5HYPERRAMPHY2x(Module):
         tx_d3 = [self.dq_dd[i] for i in range(8)] + [self.rwds_dd]
         oe = [self.dq_oe] * 8 + [self.rwds_oe]
 
+	# Align read data so that the first word with RWDS set on
+	# the negative edge of CK becomes the high word
         word_align = Signal()
         rwds_qc_save = Signal(8)
         rwds_qd_save = Signal(8)

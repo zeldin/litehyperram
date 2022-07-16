@@ -16,12 +16,13 @@ LiteHyperRAM provides a small footprint and configurable HyperRAM core.
 [> Features
 -----------
 PHY:
-  - ECP5 DDR PHY
+  - ECP5 1X and 2X DDR PHY
 Core:
   - Both memory and register space access supported
   - Arbitrary burst length
 Frontend:
   - Native or Wishbone user interface.
+  - CSR interface to register space
 
 [> Native interface
 -------------------
@@ -29,7 +30,7 @@ The native port (LiteHyperRAMNativePort) consists of three endpoints,
 cmd, wdata and rdata.  A write access uses cmd and wdata, and a read
 access uses cmd and rdata.  Multiple 16-bit words can be transferred
 over the wdata/rdata endpoint for a single write or read command (burst
-mode).
+mode).  When the 2X DDR PHY is used, memory transfers use 32-bit words.
 
 cmd:
   - we: Set to 1 for write, 0 for read
@@ -41,9 +42,9 @@ cmd:
   - ready: The command is accepted when both valid and ready are 1
 
 wdata:
-  - data: 16-bit word to write
-  - we: 2-bit signal deciding which byte(s) of data to write to memory
-    (ignored on register writes)
+  - data: 16-bit word to write (or 32-bit for 2X mode)
+  - we: 2-bit (4-bit in 2X mode) signal deciding which byte(s) of data
+    to write to memory (ignored on register writes)
   - last: Set to 1 on the last word of the burst to terminate the write
     operation
   - ready: Provide the next word when this is set to 1
@@ -53,7 +54,7 @@ wdata:
     last is 0
 
 rdata:
-  - data: 16-bit input word
+  - data: 16-bit input word (or 32-bit for 2X mode)
   - last: Set to 1 on the last word of the burst to terminate the read
     operation.  Note that this signal must be driven by the client, since
     the controller does not know how long burst is required.  Due to latencies
