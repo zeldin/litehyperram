@@ -90,7 +90,7 @@ class LiteHyperRAMController(Module):
         self.port = port = LiteHyperRAMNativePort(log2_int(module.nbanks * module.nrows * module.ncols), data_width=dw)
         self.comb += [ port.rdata.data.eq(dq_in) ]
 
-        self.submodules.fsm = fsm = ResetInserter()(CEInserter()(FSM(reset_state="CA_WORD0")))
+        self.submodules.fsm = fsm = ResetInserter()(CEInserter()(FSM(reset_state="END_READ")))
         fsm.ce = dlycnt == 0
         fsm.reset = ~ram_reset_b
 
