@@ -42,7 +42,7 @@ class LiteHyperRAMRegisterSpace(Module, AutoCSR):
             CSRField("strobe", offset = 30, pulse = True,
                 description="Write ``1`` to perform read/write."),
             CSRField("busy", offset = 31, access = CSRAccess.ReadOnly,
-                description="Operation in progress (when reas as ``1``).")
+                description="Operation in progress (when read as ``1``).")
         ], CSRAccess.ReadWrite)
 
         self.comb += [
